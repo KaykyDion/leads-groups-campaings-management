@@ -2,12 +2,14 @@ import { Router } from "express";
 import { LeadsController } from "./controllers/LeadsController";
 import { GroupsController } from "./controllers/GroupsController";
 import { CampaignsController } from "./controllers/CampaingnsController";
+import { CampaignLeadsController } from "./controllers/CampaignLeadsController";
 
 const router = Router();
 
 const leadsController = new LeadsController();
 const groupsController = new GroupsController();
 const campaignsController = new CampaignsController();
+const campaignLeadsController = new CampaignLeadsController();
 
 router.get("/leads", leadsController.index);
 router.post("/leads", leadsController.create);
@@ -26,6 +28,17 @@ router.post("/campaigns", campaignsController.create);
 router.get("/campaigns/:id", campaignsController.show);
 router.put("/campaigns/:id", campaignsController.update);
 router.delete("/campaigns/:id", campaignsController.delete);
+
+router.get("/campaigns/:campaignId/leads", campaignLeadsController.getLeads);
+router.post("/campaigns/:campaignId/leads", campaignLeadsController.addLead);
+router.put(
+  "/campaigns/:campaignId/leads/:leadId",
+  campaignLeadsController.updateLeadStatus
+);
+router.delete(
+  "/campaigns/:campaignId/leads/:leadId",
+  campaignLeadsController.removeLead
+);
 
 router.get("/status", (req, res, next) => {
   try {
