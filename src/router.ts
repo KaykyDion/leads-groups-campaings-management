@@ -3,6 +3,7 @@ import { LeadsController } from "./controllers/LeadsController";
 import { GroupsController } from "./controllers/GroupsController";
 import { CampaignsController } from "./controllers/CampaingnsController";
 import { CampaignLeadsController } from "./controllers/CampaignLeadsController";
+import { GroupLeadsController } from "./controllers/GroupLeadsController";
 
 const router = Router();
 
@@ -10,6 +11,7 @@ const leadsController = new LeadsController();
 const groupsController = new GroupsController();
 const campaignsController = new CampaignsController();
 const campaignLeadsController = new CampaignLeadsController();
+const groupLeadsController = new GroupLeadsController();
 
 router.get("/leads", leadsController.index);
 router.post("/leads", leadsController.create);
@@ -22,6 +24,13 @@ router.post("/groups", groupsController.create);
 router.get("/groups/:id", groupsController.show);
 router.put("/groups/:id", groupsController.update);
 router.delete("/groups/:id", groupsController.delete);
+
+router.get("/groups/:groupId/leads", groupLeadsController.getLeads);
+router.post("/groups/:groupId/leads", groupLeadsController.addLead);
+router.delete(
+  "/groups/:groupId/leads/:leadId",
+  groupLeadsController.removeLead
+);
 
 router.get("/campaigns", campaignsController.index);
 router.post("/campaigns", campaignsController.create);
