@@ -83,14 +83,37 @@ export class LeadsController {
     try {
       const { id } = req.params;
       const body = UpdateLeadRequestSchema.parse(req.body);
+
       const leadToUpdate = await prisma.lead.findUnique({ where: { id: +id } });
       if (!leadToUpdate) throw new HttpError(404, "Lead não encontrado!");
 
+      if (
+        leadToUpdate.status === "New" &&
+        body.status !== undefined &&
+        body.status !== "Contacted"
+      ) {
+        throw new HttpError(
+          400,
+          "um novo lead deve ser contatado antes de ter seu status atualizado para outros valores"
+        );
+      }
+
+      if (body.status && body.status === "Archived") {
+        const now = new Date();
+        const diffTime = Math.abs(
+          now.getTime() - leadToUpdate.updatedAt.getTime()
+        );
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        if (diffDays < 180)
+          throw new HttpError(
+            400,
+            "um lead só pode ser arquivado após seis meses de inatividade"
+          );
+      }
+
       const updatedLead = await prisma.lead.update({
         data: { ...body },
-        where: {
-          id: +id,
-        },
+        where: { id: +id },
       });
       res.json({ message: "Lead atualizado com sucesso", updatedLead });
     } catch (error) {
