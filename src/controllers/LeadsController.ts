@@ -1,14 +1,22 @@
 import { Handler } from "express";
-import { prisma } from "../database";
 import {
   CreateLeadRequestSchema,
   GetLeadsRequestSchema,
   UpdateLeadRequestSchema,
 } from "./schemas/LeadsRequestSchema";
 import { HttpError } from "../errors/HttpError";
-import { Prisma } from "@prisma/client";
+import {
+  LeadsRepository,
+  LeadWhereParams,
+} from "../repositories/LeadsRepository";
 
 export class LeadsController {
+  private leadsRepository: LeadsRepository;
+
+  constructor(leadsRepository: LeadsRepository) {
+    this.leadsRepository = leadsRepository;
+  }
+
   index: Handler = async (req, res, next) => {
     try {
       const query = GetLeadsRequestSchema.parse(req.query);
@@ -21,30 +29,39 @@ export class LeadsController {
         order = "asc",
       } = query;
 
-      const pageNumber = Number(page);
-      const pageSizeNumber = Number(pageSize);
+      const limit = Number(pageSize);
+      const offset = (Number(page) - 1) * limit;
 
-      const where: Prisma.LeadWhereInput = {};
+      const where: LeadWhereParams = {};
 
-      if (name) where.name = { contains: name, mode: "insensitive" };
+      if (name) where.name = { like: name, mode: "insensitive" };
       if (status) where.status = status;
 
-      const leads = await prisma.lead.findMany({
-        where,
-        skip: (pageNumber - 1) * pageSizeNumber,
-        take: pageSizeNumber,
-        orderBy: { [sortBy]: order },
-      });
+      // const leads = await prisma.lead.findMany({
+      //   where,
+      //   skip: (pageNumber - 1) * pageSizeNumber,
+      //   take: pageSizeNumber,
+      //   orderBy: { [sortBy]: order },
+      // });
 
-      const total = await prisma.lead.count({ where });
+      const leads = await this.leadsRepository.find({
+        where,
+        sortBy,
+        order,
+        limit,
+        offset,
+      });
+      const total = await this.leadsRepository.count(where);
+
+      // const total = await prisma.lead.count({ where });
 
       res.json({
         data: leads,
         meta: {
-          page: pageNumber,
-          pageSize: pageSizeNumber,
+          page: Number(page),
+          pageSize: limit,
           total,
-          totalPages: Math.ceil(total / pageNumber),
+          totalPages: Math.ceil(total / limit),
         },
       });
     } catch (error) {
@@ -55,9 +72,11 @@ export class LeadsController {
   create: Handler = async (req, res, next) => {
     try {
       const body = CreateLeadRequestSchema.parse(req.body);
-      const newLead = await prisma.lead.create({
-        data: body,
-      });
+      if (!body.status) body.status = "New";
+      const newLead = await this.leadsRepository.create(body);
+      // const newLead = await prisma.lead.create({
+      //   data: body,
+      // });
       res.status(201).json(newLead);
     } catch (error) {
       next(error);
@@ -66,10 +85,11 @@ export class LeadsController {
 
   show: Handler = async (req, res, next) => {
     try {
-      const lead = await prisma.lead.findUnique({
-        where: { id: +req.params.id },
-        include: { groups: true, campaigns: true },
-      });
+      const lead = await this.leadsRepository.findById(Number(req.params.id));
+      // const lead = await prisma.lead.findUnique({
+      //   where: { id: +req.params.id },
+      //   include: { groups: true, campaigns: true },
+      // });
 
       if (!lead) throw new HttpError(404, "Lead não encontrado!");
 
@@ -84,7 +104,8 @@ export class LeadsController {
       const { id } = req.params;
       const body = UpdateLeadRequestSchema.parse(req.body);
 
-      const leadToUpdate = await prisma.lead.findUnique({ where: { id: +id } });
+      const leadToUpdate = await this.leadsRepository.findById(+id);
+      // const leadToUpdate = await prisma.lead.findUnique({ where: { id: +id } });
       if (!leadToUpdate) throw new HttpError(404, "Lead não encontrado!");
 
       if (
@@ -110,11 +131,11 @@ export class LeadsController {
             "um lead só pode ser arquivado após seis meses de inatividade"
           );
       }
-
-      const updatedLead = await prisma.lead.update({
-        data: { ...body },
-        where: { id: +id },
-      });
+      const updatedLead = await this.leadsRepository.updateById(+id, body);
+      // const updatedLead = await prisma.lead.update({
+      //   data: { ...body },
+      //   where: { id: +id },
+      // });
       res.json({ message: "Lead atualizado com sucesso", updatedLead });
     } catch (error) {
       next(error);
@@ -124,10 +145,12 @@ export class LeadsController {
   delete: Handler = async (req, res, next) => {
     try {
       const { id } = req.params;
-      const leadToDelete = await prisma.lead.findUnique({ where: { id: +id } });
+      const leadToDelete = await this.leadsRepository.findById(+id);
+      // const leadToDelete = await prisma.lead.findUnique({ where: { id: +id } });
       if (!leadToDelete) throw new HttpError(404, "Lead não encontrado!");
 
-      const deletedLead = await prisma.lead.delete({ where: { id: +id } });
+      const deletedLead = await this.leadsRepository.deleteById(+id);
+      // const deletedLead = await prisma.lead.delete({ where: { id: +id } });
       res.json({ message: `Lead deletado com sucesso!`, deletedLead });
     } catch (error) {
       next(error);
