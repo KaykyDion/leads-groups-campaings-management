@@ -16,6 +16,7 @@ export interface LeadWhereParams {
     mode?: "default" | "insensitive";
   };
   status?: LeadStatus;
+  groupId?: number;
 }
 
 export interface FindLeadsParams {
@@ -24,6 +25,10 @@ export interface FindLeadsParams {
   order?: "asc" | "desc";
   limit?: number;
   offset?: number;
+  include?: {
+    groups?: boolean;
+    campaigns?: boolean;
+  };
 }
 
 export interface CreateLeadAttributes {
@@ -43,4 +48,5 @@ export interface LeadsRepository {
     attributes: Partial<CreateLeadAttributes>
   ) => Promise<Lead | null>;
   deleteById: (id: number) => Promise<Lead | null>;
+  findLeadInGroup: (groupId: number, leadId: number) => Promise<Lead | null>;
 }
