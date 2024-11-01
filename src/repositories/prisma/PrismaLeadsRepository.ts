@@ -17,11 +17,13 @@ export class PrismaLeadsRepository implements LeadsRepository {
           mode: params.where?.name?.mode,
         },
         status: params.where?.status,
-        groups: {
-          some: {
-            id: params.where?.groupId,
-          },
-        },
+        groups: params.where?.groupId
+          ? {
+              some: {
+                id: params.where?.groupId,
+              },
+            }
+          : undefined,
       },
       orderBy: { [params.sortBy ?? "name"]: params.order },
       skip: params.offset,

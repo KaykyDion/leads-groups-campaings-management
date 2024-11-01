@@ -17,8 +17,3 @@ export interface CampaignsRepository {
   ) => Promise<Campaign | null>;
   deleteById: (id: number) => Promise<Campaign | null>;
 }
-
-// name,
-// description,
-// startDate: new Date(startDate),
-// endDate: endDate ? new Date(endDate) : null,
