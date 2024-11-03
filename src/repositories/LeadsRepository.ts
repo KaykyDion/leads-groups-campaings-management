@@ -9,6 +9,18 @@ export type LeadStatus =
   | "Disqualified"
   | "Archived";
 
+export type LeadCampaignStatus =
+  | "New"
+  | "Engaged"
+  | "FollowUp_Scheled"
+  | "Contacted"
+  | "Qualified"
+  | "Converted"
+  | "Unresponsive"
+  | "Disqualified"
+  | "Re_Engaged"
+  | "Opted_Out";
+
 export interface LeadWhereParams {
   name?: {
     like?: string;
@@ -17,6 +29,8 @@ export interface LeadWhereParams {
   };
   status?: LeadStatus;
   groupId?: number;
+  campaignId?: number;
+  campaignStatus?: LeadCampaignStatus;
 }
 
 export interface FindLeadsParams {
