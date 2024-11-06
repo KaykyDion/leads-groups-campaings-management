@@ -1,9 +1,4 @@
-import {
-  Campaign,
-  Lead,
-  LeadCampaign,
-  LeadCampaignStatus,
-} from "@prisma/client";
+import { Campaign, LeadCampaign, LeadCampaignStatus } from "@prisma/client";
 
 export interface CreateCampaignAttributes {
   name: string;

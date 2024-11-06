@@ -1,9 +1,4 @@
-import {
-  Campaign,
-  Lead,
-  LeadCampaign,
-  LeadCampaignStatus,
-} from "@prisma/client";
+import { Campaign, LeadCampaign, LeadCampaignStatus } from "@prisma/client";
 import {
   CampaignsRepository,
   CreateCampaignAttributes,
@@ -43,11 +38,7 @@ export class PrismaCampaignRepository implements CampaignsRepository {
     status?: LeadCampaignStatus
   ): Promise<LeadCampaign> {
     return prisma.leadCampaign.create({
-      data: {
-        campaignId,
-        leadId,
-        status,
-      },
+      data: { campaignId, leadId, status },
     });
   }
 
@@ -57,29 +48,15 @@ export class PrismaCampaignRepository implements CampaignsRepository {
     leadId: number
   ): Promise<LeadCampaign> {
     return prisma.leadCampaign.update({
-      data: {
-        status,
-      },
-      where: {
-        leadId_campaignId: {
-          leadId,
-          campaignId,
-        },
-      },
+      data: { status },
+      where: { leadId_campaignId: { leadId, campaignId } },
     });
   }
 
   removeLead(campaignId: number, leadId: number): Promise<LeadCampaign> {
     return prisma.leadCampaign.delete({
-      where: {
-        leadId_campaignId: {
-          campaignId,
-          leadId,
-        },
-      },
-      include: {
-        lead: true,
-      },
+      where: { leadId_campaignId: { campaignId, leadId } },
+      include: { lead: true },
     });
   }
 }
